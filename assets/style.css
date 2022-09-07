@@ -1,0 +1,9 @@
+hr{
+    background-color: black;
+    border: 1px solid black;
+}
+
+#error-message{
+    font-style: italic;
+    color: red;
+}

@@ -124,15 +124,44 @@ function displayCurrentForecast(data){
     currentHumidity.textContent = "Humidity: " + data.main.humidity + "%";
 
     // TODO: UV index
+    var currentUvIndex = document.createElement("p");
+    var uvIndexUrl = "https://api.openuv.io/api/v1/uv?lat=" + latitude + "&lng=" + longitude;
+
+    fetch(uvIndexUrl, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "x-access-token": "912a40ef66e3595f4161207dcddd8ac3",
+          },
+    }).then(function(response){
+        return response.json();
+    }).then(function(data){
+        currentUvIndex.innerHTML = "UV Index: <span class='uv-index text-white px-2 rounded'>" + data.result.uv + "<span>";
+        var spanEl = document.querySelector(".uv-index");
+        spanEl.setAttribute("style", "background-color: "+getUVIndexColor(data.result.uv));
+    });
 
     currentForecastEl.appendChild(cityHeading);
     currentForecastEl.appendChild(currentTemp);
     currentForecastEl.appendChild(currentWind);
     currentForecastEl.appendChild(currentHumidity);
+    currentForecastEl.appendChild(currentUvIndex);
 }
 
-
-
+// gets the color of the UV Index based off of https://www.openuv.io/uvindex
+function getUVIndexColor(uvIndex){
+    if (uvIndex >=0 && uvIndex < 3){
+        return "#558B2F";
+    } else if (uvIndex >= 3 && uvIndex < 6){
+        return "#F9A825";
+    } else if (uvIndex >= 6 && uvIndex < 8){
+        return "#EF6C00";
+    } else if (uvIndex >= 8 && uvIndex < 11){
+        return "#B71C1C";
+    } else if (uvIndex >= 11){
+        return "#6A1B9A";
+    }
+}
 
 
 

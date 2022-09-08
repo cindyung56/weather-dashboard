@@ -15,6 +15,7 @@ var errorMessageEl = document.querySelector("#error-message");
 var cityData;
 var searchHistoryArray;
 
+// get the city input from the form and pass it in the API call
 function getCityInput(){
     if (cityInput.value !== ""){
         console.log(cityInput.value);
@@ -22,10 +23,8 @@ function getCityInput(){
     }
 }
 
-
 // when the user wants to search for a city, run this function to get the API call
 function searchForCity(city){
-    // if the user has inputted a city in the input, run the API request; else, don't do anything
     var geolocationUrl = "http://api.openweathermap.org/geo/1.0/direct?q=" + city + "&limit=1&appid=" + apiKey;
 
     fetch(geolocationUrl, {
@@ -55,7 +54,7 @@ function updateSearchHistory(city){
 }
 
 // if there is previous search history, get that data and store it in searchHistoryArray
-// if there is none, create searchHistoryArray as an empty array
+// if there is none, make searchHistoryArray an empty array
 function getSearchHistoryFromLocalStorage(){
     searchHistoryArray = JSON.parse(localStorage.getItem("cities"));
     if (searchHistoryArray === null){
@@ -81,8 +80,11 @@ function displaySearchHistory(){
     }
 }
 
+
+// EVENT LISTENERS
 // when the user clicks the "Search" button to search for the city inputted in the form
 searchBtn.addEventListener("click", getCityInput);
+// when the user clicks on a button from the search history, call the API again for this city
 searchHistoryEl.addEventListener("click", function(event){
     var element = event.target;
     if (element.matches(".history-btn")){
@@ -92,5 +94,6 @@ searchHistoryEl.addEventListener("click", function(event){
     }
 })
 
-// initial call upon page load
+
+// PAGE LOAD
 getSearchHistoryFromLocalStorage();

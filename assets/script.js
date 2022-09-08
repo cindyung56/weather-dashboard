@@ -31,7 +31,7 @@ function getCityInput(){
 // when the user wants to search for a city, run this function to get the API call
 function searchForCity(city){
     currentCity = city;
-    var geolocationUrl = "http://api.openweathermap.org/geo/1.0/direct?q=" + city + "&limit=1&appid=" + apiKey;
+    var geolocationUrl = "https://api.openweathermap.org/geo/1.0/direct?q=" + city + "&limit=1&appid=" + apiKey;
 
     fetch(geolocationUrl, {
         method: "GET"
@@ -122,7 +122,7 @@ function displayCurrentForecast(data){
     cityHeading.setAttribute("style", "font-weight: bold;")
     cityHeading.textContent = currentCity + " (" + moment.unix(data.dt).format("M/D/YYYY") + ")" 
     var iconImg = document.createElement("img");
-    iconImg.setAttribute("src", ("http://openweathermap.org/img/w/"+ data.weather[0].icon + ".png"));
+    iconImg.setAttribute("src", ("https://openweathermap.org/img/w/"+ data.weather[0].icon + ".png"));
     cityHeading.appendChild(iconImg);
 
     // temperature, wind, humidity
@@ -206,7 +206,7 @@ function displayFutureForecast(data){
 
         // icons
         var nextDayIcon = document.createElement("img");
-        nextDayIcon.setAttribute("src", ("http://openweathermap.org/img/w/"+ nextDay.weather[0].icon + ".png"))
+        nextDayIcon.setAttribute("src", ("https://openweathermap.org/img/w/"+ nextDay.weather[0].icon + ".png"))
         forecastCard.appendChild(nextDayIcon);
 
         // temperature, wind speed, humidity

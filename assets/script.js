@@ -1,10 +1,6 @@
-// https://api.openweathermap.org/data/2.5/onecall?lat={lat}&lon={lon}&exclude={part}&appid={API key}
-// API key = ab3a5573ca2d878ca5a062e1e21e12e8
-
-// geolocation API
-// http://api.openweathermap.org/geo/1.0/direct?q={city name},{state code},{country code}&limit={limit}&appid={API key}
 
 var apiKey = "ab3a5573ca2d878ca5a062e1e21e12e8";
+// uvIndexApiKey = 9b35244b1b7b8578e6c231fd7654c186
 
 var cityInput = document.querySelector("#city");
 var searchBtn = document.querySelector("#search-button");
@@ -91,8 +87,7 @@ function displaySearchHistory(){
 
 //function to get the current weather information using latitude and longitude
 function getCurrentWeatherData(){
-    console.log(latitude,longitude);
-    //temp main.temp, wind.speed, main.humidity, uv index
+    // console.log(latitude,longitude);
     var currentWeatherApiUrl = "https://api.openweathermap.org/data/2.5/weather?lat=" + latitude + "&lon=" + longitude + "&appid=" + apiKey+ "&units=imperial";
 
     fetch(currentWeatherApiUrl, {
@@ -102,11 +97,13 @@ function getCurrentWeatherData(){
         return response.json();
     }).then(function(data){
         displayCurrentForecast(data);
+        displayFutureForecast(data);
     })
 }
 
 // function to display the information in currentForecastEl
 function displayCurrentForecast(data){
+    // heading of city, today's date, and icon of the current overcast
     currentForecastEl.innerHTML = "";
     var cityHeading = document.createElement("h2");
     cityHeading.setAttribute("style", "font-weight: bold;")
@@ -115,6 +112,7 @@ function displayCurrentForecast(data){
     iconImg.setAttribute("src", ("http://openweathermap.org/img/w/"+ data.weather[0].icon + ".png"));
     cityHeading.appendChild(iconImg);
 
+    // temperature, wind, humidity
     var currentTemp = document.createElement("p");
     var currentWind = document.createElement("p");
     var currentHumidity = document.createElement("p");
@@ -123,7 +121,7 @@ function displayCurrentForecast(data){
     currentWind.textContent = "Wind: " + data.wind.speed + " MPH";
     currentHumidity.textContent = "Humidity: " + data.main.humidity + "%";
 
-    // TODO: UV index
+    // UV Index API
     var currentUvIndex = document.createElement("p");
     var uvIndexUrl = "https://api.openuv.io/api/v1/uv?lat=" + latitude + "&lng=" + longitude;
 
@@ -141,6 +139,7 @@ function displayCurrentForecast(data){
         spanEl.setAttribute("style", "background-color: "+getUVIndexColor(data.result.uv));
     });
 
+    // add everything to the container
     currentForecastEl.appendChild(cityHeading);
     currentForecastEl.appendChild(currentTemp);
     currentForecastEl.appendChild(currentWind);
@@ -163,8 +162,10 @@ function getUVIndexColor(uvIndex){
     }
 }
 
-
-
+// display next 5 days' forecast for currentCity in cards
+function displayFutureForecast(data){
+    console.log(data);
+}
 
 
 
@@ -191,3 +192,7 @@ searchHistoryEl.addEventListener("click", function(event){
 
 // PAGE LOAD
 getSearchHistoryFromLocalStorage();
+// if there is previous search history fill in the sections with the most recent entry
+if (searchHistoryArray !== []){
+    searchForCity(searchHistoryArray[searchHistoryArray.length - 1]);
+}

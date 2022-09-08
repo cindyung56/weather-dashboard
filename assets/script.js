@@ -10,9 +10,12 @@ var cityInput = document.querySelector("#city");
 var searchBtn = document.querySelector("#search-button");
 var searchHistoryEl = document.querySelector("#search-history");
 var errorMessageEl = document.querySelector("#error-message");
-// var historyButtons = document.querySelector('.history-btn');
+var currentForecastEl = document.querySelector("#current-forecast");
+var futureForecastEl = document.querySelector("#future-forecast");
 
-var cityData;
+var currentCity;
+var latitude;
+var longitude;
 var searchHistoryArray;
 
 // get the city input from the form and pass it in the API call
@@ -25,6 +28,7 @@ function getCityInput(){
 
 // when the user wants to search for a city, run this function to get the API call
 function searchForCity(city){
+    currentCity = city;
     var geolocationUrl = "http://api.openweathermap.org/geo/1.0/direct?q=" + city + "&limit=1&appid=" + apiKey;
 
     fetch(geolocationUrl, {
@@ -33,10 +37,15 @@ function searchForCity(city){
     .then(function(response){
         return response.json();
     }).then(function(data){
-        cityData = data;
-        console.log(cityData);
+        var cityData = data[0];
+        // console.log(cityData);
+
+        latitude = cityData.lat;
+        longitude = cityData.lon;
+
         if (cityData.length !== 0){
-            updateSearchHistory(city);
+            updateSearchHistory(cityData.name);
+            getCurrentWeatherData();
         } else{
             errorMessageEl.textContent = "That city doesn't exist. Please input another one!";
         }
@@ -80,6 +89,62 @@ function displaySearchHistory(){
     }
 }
 
+//function to get the current weather information using latitude and longitude
+function getCurrentWeatherData(){
+    console.log(latitude,longitude);
+    //temp main.temp, wind.speed, main.humidity, uv index
+    var currentWeatherApiUrl = "https://api.openweathermap.org/data/2.5/weather?lat=" + latitude + "&lon=" + longitude + "&appid=" + apiKey+ "&units=imperial";
+
+    fetch(currentWeatherApiUrl, {
+        method: "GET"
+    })
+    .then(function(response){
+        return response.json();
+    }).then(function(data){
+        displayCurrentForecast(data);
+    })
+}
+
+// function to display the information in currentForecastEl
+function displayCurrentForecast(data){
+    currentForecastEl.innerHTML = "";
+    var cityHeading = document.createElement("h2");
+    cityHeading.setAttribute("style", "font-weight: bold;")
+    cityHeading.textContent = currentCity + " (" + moment.unix(data.dt).format("M/D/YYYY") + ")" 
+    var iconImg = document.createElement("img");
+    iconImg.setAttribute("src", ("http://openweathermap.org/img/w/"+ data.weather[0].icon + ".png"));
+    cityHeading.appendChild(iconImg);
+
+    var currentTemp = document.createElement("p");
+    var currentWind = document.createElement("p");
+    var currentHumidity = document.createElement("p");
+
+    currentTemp.textContent = "Temp: " + data.main.temp + "°F";
+    currentWind.textContent = "Wind: " + data.wind.speed + " MPH";
+    currentHumidity.textContent = "Humidity: " + data.main.humidity + "%";
+
+    // TODO: UV index
+
+    currentForecastEl.appendChild(cityHeading);
+    currentForecastEl.appendChild(currentTemp);
+    currentForecastEl.appendChild(currentWind);
+    currentForecastEl.appendChild(currentHumidity);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // EVENT LISTENERS
 // when the user clicks the "Search" button to search for the city inputted in the form
@@ -88,7 +153,7 @@ searchBtn.addEventListener("click", getCityInput);
 searchHistoryEl.addEventListener("click", function(event){
     var element = event.target;
     if (element.matches(".history-btn")){
-        console.log(element.textContent);
+        // console.log(element.textContent);
         // console.log("button has been pressed");
         searchForCity(element.textContent);
     }

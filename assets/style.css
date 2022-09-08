@@ -1,9 +1,25 @@
+/* Element Selectors */
+
 hr{
     background-color: black;
     border: 1px solid black;
 }
 
+/* Class Selectors */
+
+.forecast-card{
+    background-color: #2D3E50;
+    color: white;
+    max-width: 20%;
+}
+
+/* ID Selectors */
+
+#current-forecast{
+    height: 35%;
+}
+
 #error-message{
     font-style: italic;
-    color: red;
+    color: #2D3E50;
 }

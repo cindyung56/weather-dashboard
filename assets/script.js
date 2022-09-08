@@ -1,7 +1,8 @@
-
+// ----- VARIABLES -----
 var apiKey = "ab3a5573ca2d878ca5a062e1e21e12e8";
-// uvIndexApiKey = 9b35244b1b7b8578e6c231fd7654c186
+var oneCallApiKey = "9b35244b1b7b8578e6c231fd7654c186";
 
+// query selectors
 var cityInput = document.querySelector("#city");
 var searchBtn = document.querySelector("#search-button");
 var searchHistoryEl = document.querySelector("#search-history");
@@ -9,10 +10,15 @@ var errorMessageEl = document.querySelector("#error-message");
 var currentForecastEl = document.querySelector("#current-forecast");
 var futureForecastEl = document.querySelector("#future-forecast");
 
+// variables for future use
 var currentCity;
 var latitude;
 var longitude;
 var searchHistoryArray;
+
+
+
+// ----- GEOLOCATION & SEARCH HISTORY FUNCTIONS -----
 
 // get the city input from the form and pass it in the API call
 function getCityInput(){
@@ -39,12 +45,17 @@ function searchForCity(city){
         latitude = cityData.lat;
         longitude = cityData.lon;
 
-        if (cityData.length !== 0){
-            updateSearchHistory(cityData.name);
-            getCurrentWeatherData();
-        } else{
+        if (cityData.length === 0){
             errorMessageEl.textContent = "That city doesn't exist. Please input another one!";
+        } else if (searchHistoryArray.includes(currentCity) === false){
+            updateSearchHistory(cityData.name);
         }
+
+        // if the API call returned something, get both current weather data and future forecast data
+        if (cityData.length !== 0){
+            getCurrentWeatherData();
+            getForecastWeatherData();
+        } 
     })
 }
 
@@ -59,7 +70,7 @@ function updateSearchHistory(city){
 }
 
 // if there is previous search history, get that data and store it in searchHistoryArray
-// if there is none, make searchHistoryArray an empty array
+// if there is no search history, make searchHistoryArray an empty array
 function getSearchHistoryFromLocalStorage(){
     searchHistoryArray = JSON.parse(localStorage.getItem("cities"));
     if (searchHistoryArray === null){
@@ -74,7 +85,7 @@ function addToLocalStorage(){
     displaySearchHistory();
 }
 
-//display search history results
+// display search history results
 function displaySearchHistory(){
     searchHistoryEl.innerHTML = "";
     for (var i = searchHistoryArray.length-1; i > -1; i--){
@@ -84,6 +95,9 @@ function displaySearchHistory(){
         searchHistoryEl.appendChild(historyBtn);
     }
 }
+
+
+// ----- CURRENT WEATHER DATA FUNCTIONS -----
 
 //function to get the current weather information using latitude and longitude
 function getCurrentWeatherData(){
@@ -97,7 +111,6 @@ function getCurrentWeatherData(){
         return response.json();
     }).then(function(data){
         displayCurrentForecast(data);
-        displayFutureForecast(data);
     })
 }
 
@@ -123,20 +136,17 @@ function displayCurrentForecast(data){
 
     // UV Index API
     var currentUvIndex = document.createElement("p");
-    var uvIndexUrl = "https://api.openuv.io/api/v1/uv?lat=" + latitude + "&lng=" + longitude;
+    var uvIndexUrl = "https://api.openweathermap.org/data/2.5/onecall?lat=" + latitude + "&lon=" + longitude + "&appid=" + oneCallApiKey;
 
     fetch(uvIndexUrl, {
         method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-            "x-access-token": "912a40ef66e3595f4161207dcddd8ac3",
-          },
     }).then(function(response){
         return response.json();
     }).then(function(data){
-        currentUvIndex.innerHTML = "UV Index: <span class='uv-index text-white px-2 rounded'>" + data.result.uv + "<span>";
+        // console.log(data.current.uvi);
+        currentUvIndex.innerHTML = "UV Index: <span class='uv-index text-white px-2 rounded'>" + data.current.uvi + "<span>";
         var spanEl = document.querySelector(".uv-index");
-        spanEl.setAttribute("style", "background-color: "+getUVIndexColor(data.result.uv));
+        spanEl.setAttribute("style", "background-color: "+getUVIndexColor(data.current.uvi));
     });
 
     // add everything to the container
@@ -162,23 +172,68 @@ function getUVIndexColor(uvIndex){
     }
 }
 
+
+
+// ----- FUTURE FORECAST WEATHER DATA FUNCTIONS -----
+
+// function to get future forecast using latitude and longitude
+function getForecastWeatherData(){
+    var forecastUrl = "https://api.openweathermap.org/data/2.5/onecall?lat=" + latitude + "&lon=" + longitude + "&appid=" + oneCallApiKey +"&exclude=current,hourly,minutely,alerts&units=imperial";
+
+    fetch(forecastUrl, {
+        method: "GET",
+    }).then(function(response){
+        return response.json();
+    }).then(function(data){
+        displayFutureForecast(data);
+    })
+}
+
 // display next 5 days' forecast for currentCity in cards
 function displayFutureForecast(data){
-    console.log(data);
+    futureForecastEl.innerHTML = "";
+    for (var i = 0; i < 5; i++){
+        var nextDay = data.daily[i];
+
+        // create the card
+        var forecastCard = document.createElement("div");
+        forecastCard.setAttribute("class", "forecast-card col m-1 py-2");
+
+        // the next day's date
+        var nextDayHeading = document.createElement("h4");
+        nextDayHeading.textContent = moment.unix(nextDay.dt).format("M/D/YYYY");
+        forecastCard.appendChild(nextDayHeading);
+
+        // icons
+        var nextDayIcon = document.createElement("img");
+        nextDayIcon.setAttribute("src", ("http://openweathermap.org/img/w/"+ nextDay.weather[0].icon + ".png"))
+        forecastCard.appendChild(nextDayIcon);
+
+        // temperature, wind speed, humidity
+        var nextDayTemp = document.createElement("p");
+        var nextDayWind = document.createElement("p");
+        var nextDayHumidity = document.createElement("p");
+
+        nextDayTemp.textContent = "Temp: " + nextDay.temp.day + "°F";
+        nextDayWind.textContent = "Wind: " + nextDay.wind_speed + " MPH";
+        nextDayHumidity.textContent = "Humidity: " + nextDay.humidity + "%";
+
+        forecastCard.appendChild(nextDayTemp);
+        forecastCard.appendChild(nextDayWind);
+        forecastCard.appendChild(nextDayHumidity);
+
+        futureForecastEl.appendChild(forecastCard);
+    }
+    
 }
 
 
 
+// ----- EVENT LISTENERS -----
 
-
-
-
-
-
-
-// EVENT LISTENERS
 // when the user clicks the "Search" button to search for the city inputted in the form
 searchBtn.addEventListener("click", getCityInput);
+
 // when the user clicks on a button from the search history, call the API again for this city
 searchHistoryEl.addEventListener("click", function(event){
     var element = event.target;
@@ -190,9 +245,10 @@ searchHistoryEl.addEventListener("click", function(event){
 })
 
 
-// PAGE LOAD
+
+// ----- PAGE LOAD -----
 getSearchHistoryFromLocalStorage();
 // if there is previous search history fill in the sections with the most recent entry
-if (searchHistoryArray !== []){
+if (searchHistoryArray.length !== 0){
     searchForCity(searchHistoryArray[searchHistoryArray.length - 1]);
 }
